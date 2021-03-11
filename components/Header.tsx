@@ -1,6 +1,8 @@
 import { FC } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useUser } from "@auth0/nextjs-auth0";
+import Image from "next/image";
 
 interface ActiveLinkProps {
     route: string;
@@ -30,12 +32,9 @@ function navLinkGen(name: string, route: string): ActiveLinkProps {
 
 const Header: FC = () => {
     const router = useRouter();
+    const { user } = useUser();
 
-    const navLinks = [
-        navLinkGen("Home", "/"),
-        navLinkGen("About", "/about"),
-        navLinkGen("Auth", "/api/auth/login"),
-    ];
+    const navLinks = [navLinkGen("Home", "/"), navLinkGen("About", "/about")];
 
     const handleHomeClick = () => router.push("/");
 
@@ -51,6 +50,19 @@ const Header: FC = () => {
                 {navLinks.map((navLink) => (
                     <ActiveLink {...navLink} key={navLink.name} />
                 ))}
+                {user ? (
+                    <div className="md:mx-4">
+                        <Image
+                            src={user.picture}
+                            alt="User Profile Picture"
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                        />
+                    </div>
+                ) : (
+                    <ActiveLink name="Auth" route="/api/auth/login" />
+                )}
             </div>
         </header>
     );
