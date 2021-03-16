@@ -14,7 +14,7 @@ const Home: FC = () => {
     useEffect(() => {
         if (user) {
             addUser({
-                id: `${user.sub}|${user.email}`,
+                id: user.sub,
                 name: user.name,
                 email: user.email,
                 picture: user.picture,

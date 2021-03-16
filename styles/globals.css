@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inconsolata&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,4 +6,12 @@
 
 body {
     @apply bg-gray-700 font-mono;
+}
+
+.form-label {
+    @apply text-white text-lg;
+}
+
+.form-input {
+    @apply w-full rounded p-2;
 }

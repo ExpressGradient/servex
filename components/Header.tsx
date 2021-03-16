@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { Dispatch, FC, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { UserProfile, useUser } from "@auth0/nextjs-auth0";
@@ -66,9 +66,15 @@ const Drawer: FC<DrawerProps> = (props) => (
         </div>
         <h4 className="text-black text-lg">Navigation Links</h4>
         <div className="text-left text-blue-700">
-            {props.navLinks.map((navLink) => (
-                <ActiveLink {...navLink} key={navLink.name} isMobile={true} />
-            ))}
+            <div>
+                {props.navLinks.map((navLink) => (
+                    <ActiveLink
+                        {...navLink}
+                        key={navLink.name}
+                        isMobile={true}
+                    />
+                ))}
+            </div>
             {props.user ? (
                 <ActiveLink name={"Profile"} route={"/profile"} />
             ) : (
@@ -97,6 +103,8 @@ const Header: FC = () => {
 
     const toggleDrawer = () => setShowDrawer(!showDrawer);
 
+    const handleProfileClick = () => router.push(`/profile/${user.name}`);
+
     if (windowWidth < 768) {
         return (
             <>
@@ -115,6 +123,7 @@ const Header: FC = () => {
                                 width={32}
                                 height={32}
                                 className="rounded-full"
+                                onClick={handleProfileClick}
                             />
                         </div>
                     )}
@@ -165,6 +174,7 @@ const Header: FC = () => {
                             height={32}
                             className="rounded-full cursor-pointer"
                             title="Go to your Profile"
+                            onClick={handleProfileClick}
                         />
                     </div>
                 ) : (
