@@ -1,77 +1,125 @@
+import Page from "../components/Page";
 import { useUser, withPageAuthRequired } from "@auth0/nextjs-auth0";
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import Modal from "../components/Modal";
 import AutoCompleteInput from "../components/AutoCompleteInput";
-import CustomHead from "../components/CustomHead";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import supabase from "../supabase/client";
-import useSWR from "swr";
 import { useRouter } from "next/router";
+import slugify from "slugify";
+import { nanoid } from "nanoid";
 
-const CreateJob: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (
-    props
-) => {
+function CreateNewJob(): JSX.Element {
+    const { user } = useUser();
+    const router = useRouter();
+    const [
+        showVerifyWarningModal,
+        setShowVerifyWarningModal,
+    ] = useState<boolean>(false);
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [categories, setCategories] = useState<Array<string>>([]);
     const [disabled, setDisabled] = useState<boolean>(false);
+    const [reward, setReward] = useState<number>(0);
     const [lastDate, setLastDate] = useState<string>("");
     const [address, setAddress] = useState<string>("");
-    const [reward, setReward] = useState<number>(0);
-    const { data: dbCategories } = useSWR("/api/getCategories", {
-        initialData: props.dbCategories,
-    });
-    const { user } = useUser();
-    const router = useRouter();
 
-    const handleTitle = (event) => setTitle(event.target.value);
-    const handleDescription = (event) => setDescription(event.target.value);
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        await supabase.from("jobs").insert([
-            {
-                id: user.sub + title,
-                title,
-                description,
-                categories,
-                last_date: lastDate,
-                reward,
-                hiring: user.sub,
-                address,
-            },
-        ]);
-        router.push("/");
-    };
-    const handleReset = (event) => router.push("/");
-    const updateCategories = (newCategory: string) => {
-        if (!categories.includes(newCategory) && categories.length < 3) {
-            setCategories((prevCategories) => [...prevCategories, newCategory]);
-        }
-    };
-    const handleLastDateChange = (event) => setLastDate(event.target.value);
-    const handleAddressChange = (event) => setAddress(event.target.value);
-    const handleRewardChange = (event) => setReward(event.target.value);
-
+    useEffect(
+        function () {
+            if (user) {
+                if (!user.email_verified) {
+                    setShowVerifyWarningModal(true);
+                }
+            }
+        },
+        [user]
+    );
     useEffect(() => {
         if (categories.length === 3) {
             setDisabled(true);
-            window.alert("Max limit for adding categories reached");
         } else {
             setDisabled(false);
         }
     }, [categories]);
 
-    useEffect(() => {
-        if (!user?.email_verified) {
-            window.alert("Please verify your email before creating a Job");
+    const demoCategories: string[] = [
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+        "react.js",
+        "next.js",
+        "express.js",
+        "angular",
+        "sanity",
+    ];
+
+    function toggleVerifyWarningModal() {
+        setShowVerifyWarningModal(false);
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        await fetch("/api/createJob", {
+            method: "POST",
+            body: JSON.stringify({
+                _type: "job",
+                _id: `${slugify(title, "")}_${user.sub.split("|")[1]}`,
+                title,
+                description,
+                categories: categories.map(function (category) {
+                    return {
+                        _type: "reference",
+                        _ref: category,
+                        _key: nanoid(),
+                    };
+                }),
+                reward,
+                lastDate: new Date(lastDate).toString(),
+                address,
+                author: {
+                    _type: "reference",
+                    _ref: user.sub.split("|")[1],
+                },
+            }),
+        });
+        await router.push("/");
+    }
+    function handleTitle(event) {
+        setTitle(event.target.value);
+    }
+    function handleDescription(event) {
+        setDescription(event.target.value);
+    }
+    function updateCategories(newCategory: string) {
+        if (!categories.includes(newCategory) && categories.length < 3) {
+            setCategories((prevCategories) => [...prevCategories, newCategory]);
         }
-    }, [user]);
+    }
+    function handleReward(event) {
+        setReward(event.target.value);
+    }
+    function handleLastDate(event) {
+        setLastDate(event.target.value);
+    }
+    function handleAddress(event) {
+        setAddress(event.target.value);
+    }
+    async function handleReset(event) {
+        await router.push("/");
+    }
 
     return (
         <>
-            <CustomHead
-                title="ServeX - Create a new Job"
+            <Page
+                title="ServeX - Create New Job"
                 description="Create a new ServeX Job"
             />
+            {showVerifyWarningModal && (
+                <Modal
+                    message="Please verify your Email to create a Job"
+                    closeAction={toggleVerifyWarningModal}
+                    isError={true}
+                />
+            )}
             <main className="mt-4">
                 <h1 className="text-2xl text-center text-white uppercase">
                     New Job
@@ -112,17 +160,23 @@ const CreateJob: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                                 onChange={handleDescription}
                                 placeholder="Enter the description of the Job"
                                 required={true}
-                            ></textarea>
+                            />
                         </div>
                         <div className="mt-4">
                             <AutoCompleteInput
-                                data={dbCategories.sort()}
+                                data={demoCategories.sort()}
                                 id="categories"
                                 label="Categories"
                                 updateDataAction={updateCategories}
                                 disabled={disabled}
                             />
                         </div>
+                        {disabled && (
+                            <Modal
+                                message="Limit reached for adding categories"
+                                closeAction={function () {}}
+                            />
+                        )}
                         {categories.length > 0 && (
                             <div className="mt-4">
                                 <h3 className="form-label">
@@ -168,7 +222,7 @@ const CreateJob: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                                 id="reward-input"
                                 min={0}
                                 value={reward}
-                                onChange={handleRewardChange}
+                                onChange={handleReward}
                             />
                         </div>
                         <div className="mt-4">
@@ -179,7 +233,7 @@ const CreateJob: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                                 type="date"
                                 id="date-input"
                                 value={lastDate}
-                                onChange={handleLastDateChange}
+                                onChange={handleLastDate}
                                 className="form-input"
                                 min={new Date().toISOString().slice(0, 10)}
                             />
@@ -198,7 +252,7 @@ const CreateJob: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                                 placeholder="Enter the job's address, if remote don't enter anything"
                                 maxLength={50}
                                 value={address}
-                                onChange={handleAddressChange}
+                                onChange={handleAddress}
                             />
                         </div>
                         <div className="my-4 flex justify-evenly">
@@ -210,8 +264,8 @@ const CreateJob: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                             </button>
                             <button
                                 className="uppercase bg-red-600 text-white px-5 py-2 rounded"
-                                type="reset"
-                                onReset={handleReset}
+                                type="button"
+                                onClick={handleReset}
                             >
                                 Cancel
                             </button>
@@ -221,28 +275,6 @@ const CreateJob: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (
             </main>
         </>
     );
-};
+}
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-    const dbCategoriesResponse = await supabase
-        .from("categories")
-        .select("category");
-    const dbCategoriesMap = dbCategoriesResponse.data;
-    const dbCategories: string[] = dbCategoriesMap.map(
-        (categoryObject) => categoryObject.category
-    );
-
-    if (!dbCategories) {
-        return {
-            notFound: true,
-        };
-    }
-
-    return {
-        props: { dbCategories },
-    };
-};
-
-const CreateJobWrapper = withPageAuthRequired(CreateJob);
-
-export default CreateJobWrapper;
+export default withPageAuthRequired(CreateNewJob);
