@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import slugify from "slugify";
 import Page from "../components/Page";
 import Modal from "../components/Modal";
+import JobsList from "../components/JobsList";
+import { useWindowWidth } from "../utils/customHooks";
 
-export default function Home(): JSX.Element {
+export default function Home(props): JSX.Element {
     const { user } = useUser();
     const [showModal, setShowModal] = useState<boolean>(false);
+    const windowWidth = useWindowWidth();
 
     useEffect(
         function () {
@@ -23,7 +26,7 @@ export default function Home(): JSX.Element {
                             slug: slugify(user.name, ""),
                             pictureURL: user.picture,
                         }),
-                    });
+                    }).then(function (res) {});
                 } else {
                     setShowModal(true);
                 }
@@ -45,6 +48,11 @@ export default function Home(): JSX.Element {
                     isError={true}
                     closeAction={toggleModal}
                 />
+            )}
+            {windowWidth < 768 && (
+                <div className="bg-gray-900 m-4 rounded min-h-132 max-h-132 overflow-y-auto">
+                    <JobsList />
+                </div>
             )}
         </>
     );

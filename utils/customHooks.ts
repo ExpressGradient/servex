@@ -1,5 +1,6 @@
 import { useUser } from "@auth0/nextjs-auth0";
 import { useEffect, useState } from "react";
+import { nanoid } from "nanoid";
 
 export function useDbUserImage(): string {
     const { user } = useUser();
@@ -43,4 +44,29 @@ export function useWindowWidth(): number {
     }, []);
 
     return width;
+}
+
+export function useFormInput<T>(initialValue) {
+    const [input, setInput] = useState<T>(initialValue);
+
+    function handleInput(event) {
+        setInput(event.target.value);
+    }
+
+    return { input, handleInput };
+}
+
+export function useUserId(): string {
+    const [userId, setUserId] = useState<string>("");
+
+    useEffect(function () {
+        let userId = window.localStorage.getItem("room_service_user");
+        if (userId === null) {
+            userId = nanoid();
+            window.localStorage.setItem("room_service_user", userId);
+        }
+        setUserId(userId);
+    }, []);
+
+    return userId;
 }

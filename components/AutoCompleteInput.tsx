@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface AutoCompleteInputProps {
     data: string[];
@@ -16,13 +16,16 @@ export default function AutoCompleteInput(
     const [cursor, setCursor] = useState<number>(0);
 
     useEffect(() => {
-        setCopyData(
-            props.data.filter((field) => {
-                if (textInput === "") return field;
-                else if (field.includes(textInput.toLowerCase())) return field;
-                else return null;
-            })
-        );
+        if (props.data) {
+            setCopyData(
+                props.data.filter((field) => {
+                    if (textInput === "") return field;
+                    else if (field.includes(textInput.toLowerCase()))
+                        return field;
+                    else return null;
+                })
+            );
+        }
     }, [textInput]);
 
     const handleTextInput = (e) => setTextInput(e.target.value);
@@ -68,10 +71,9 @@ export default function AutoCompleteInput(
                 onKeyPress={handleEnterPress}
                 disabled={props.disabled}
                 maxLength={30}
-                required={true}
                 placeholder="Enter the categories of your job might fall into"
             />
-            {!props.disabled && (
+            {!props.disabled && copyData && (
                 <div className="bg-white">
                     {copyData.slice(0, 3).map((field, index) => (
                         <p

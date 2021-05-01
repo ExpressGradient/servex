@@ -6,6 +6,14 @@ import AutoCompleteInput from "../components/AutoCompleteInput";
 import { useRouter } from "next/router";
 import slugify from "slugify";
 import { nanoid } from "nanoid";
+import { useFormInput } from "../utils/customHooks";
+import useSWR from "swr";
+
+function fetcher(url: string) {
+    return fetch(url).then(function (res) {
+        return res.json();
+    });
+}
 
 function CreateNewJob(): JSX.Element {
     const { user } = useUser();
@@ -14,13 +22,27 @@ function CreateNewJob(): JSX.Element {
         showVerifyWarningModal,
         setShowVerifyWarningModal,
     ] = useState<boolean>(false);
-    const [title, setTitle] = useState<string>("");
-    const [description, setDescription] = useState<string>("");
+    const [showJobCreationModal, setShowJobCreationModal] = useState<boolean>(
+        false
+    );
+    const { input: title, handleInput: handleTitle } = useFormInput<string>("");
+    const {
+        input: description,
+        handleInput: handleDescription,
+    } = useFormInput<string>("");
     const [categories, setCategories] = useState<Array<string>>([]);
     const [disabled, setDisabled] = useState<boolean>(false);
-    const [reward, setReward] = useState<number>(0);
-    const [lastDate, setLastDate] = useState<string>("");
-    const [address, setAddress] = useState<string>("");
+    const { input: reward, handleInput: handleReward } = useFormInput<number>(
+        0
+    );
+    const {
+        input: lastDate,
+        handleInput: handleLastDate,
+    } = useFormInput<string>("");
+    const { input: address, handleInput: handleAddress } = useFormInput<string>(
+        ""
+    );
+    const { data: dbCategories } = useSWR("/api/getCategories", fetcher);
 
     useEffect(
         function () {
@@ -40,24 +62,17 @@ function CreateNewJob(): JSX.Element {
         }
     }, [categories]);
 
-    const demoCategories: string[] = [
-        "html",
-        "css",
-        "javascript",
-        "typescript",
-        "react.js",
-        "next.js",
-        "express.js",
-        "angular",
-        "sanity",
-    ];
-
-    function toggleVerifyWarningModal() {
+    function toggleVerifyWarningModal(): void {
         setShowVerifyWarningModal(false);
+    }
+
+    function toggleShowJobCreationModal(): void {
+        setShowJobCreationModal(false);
     }
 
     async function handleSubmit(event) {
         event.preventDefault();
+        setShowJobCreationModal(true);
         await fetch("/api/createJob", {
             method: "POST",
             body: JSON.stringify({
@@ -79,30 +94,18 @@ function CreateNewJob(): JSX.Element {
                     _type: "reference",
                     _ref: user.sub.split("|")[1],
                 },
+                slug: slugify(title, "-"),
             }),
         });
         await router.push("/");
     }
-    function handleTitle(event) {
-        setTitle(event.target.value);
-    }
-    function handleDescription(event) {
-        setDescription(event.target.value);
-    }
+
     function updateCategories(newCategory: string) {
         if (!categories.includes(newCategory) && categories.length < 3) {
             setCategories((prevCategories) => [...prevCategories, newCategory]);
         }
     }
-    function handleReward(event) {
-        setReward(event.target.value);
-    }
-    function handleLastDate(event) {
-        setLastDate(event.target.value);
-    }
-    function handleAddress(event) {
-        setAddress(event.target.value);
-    }
+
     async function handleReset(event) {
         await router.push("/");
     }
@@ -164,7 +167,7 @@ function CreateNewJob(): JSX.Element {
                         </div>
                         <div className="mt-4">
                             <AutoCompleteInput
-                                data={demoCategories.sort()}
+                                data={dbCategories}
                                 id="categories"
                                 label="Categories"
                                 updateDataAction={updateCategories}
@@ -273,6 +276,12 @@ function CreateNewJob(): JSX.Element {
                     </fieldset>
                 </form>
             </main>
+            {showJobCreationModal && (
+                <Modal
+                    message="Creating your Job"
+                    closeAction={toggleShowJobCreationModal}
+                />
+            )}
         </>
     );
 }
