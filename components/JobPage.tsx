@@ -3,6 +3,7 @@ import { useWindowWidth } from "../utils/customHooks";
 import { motion } from "framer-motion";
 import TimeAgo from "timeago-react";
 import { useRouter } from "next/router";
+import useStore from "../utils/store";
 
 interface JobPageProps {
     index: number;
@@ -18,6 +19,9 @@ export default function JobPage(props: JobPageProps): JSX.Element {
     const { data } = useSWR(`/api/getJobs/${props.index}`, fetcher);
     const windowWidth = useWindowWidth();
     const router = useRouter();
+    const setCurrentJobId: Function = useStore(function (state) {
+        return state.setCurrentJobId;
+    });
 
     if (!data) {
         return (
@@ -36,6 +40,8 @@ export default function JobPage(props: JobPageProps): JSX.Element {
                         onClick={async function (event) {
                             if (windowWidth < 768) {
                                 await router.push(`job/${job.slug}`);
+                            } else {
+                                setCurrentJobId(job._id);
                             }
                         }}
                         className="py-3 px-2 mx-2 border-b border-white cursor-pointer"

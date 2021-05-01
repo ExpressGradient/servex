@@ -8,12 +8,6 @@ module.exports = {
                 serif: ["Quicksand", "sans-serif"],
                 mono: ["consolas", "monospace"],
             },
-            maxHeight: {
-                132: "32rem",
-            },
-            minHeight: {
-                132: "32rem",
-            },
         },
     },
     variants: {
