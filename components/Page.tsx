@@ -128,7 +128,7 @@ export function AppBar(): JSX.Element {
                     </div>
                 )}
                 <h1
-                    className="text-white text-4xl text-center cursor-pointer"
+                    className="text-white text-4xl text-center cursor-pointer font-semibold"
                     onClick={handleTitleClick}
                 >
                     ServeX
