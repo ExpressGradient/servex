@@ -17,16 +17,6 @@ async function createUser(req: NextApiRequest, res: NextApiResponse) {
         doc.reward = parseInt(doc.reward);
         const response = await dbClient.createIfNotExists(doc);
 
-        // for (const categoryDoc of doc.categories) {
-        //     await dbClient
-        //         .patch(categoryDoc._ref)
-        //         .setIfMissing({ jobs: [] })
-        //         .append("jobs", [
-        //             { _key: nanoid(), _type: "reference", _ref: doc._id },
-        //         ])
-        //         .commit();
-        // }
-
         console.log(
             `Job Created, ID: ${doc._id}, Title: ${doc.title}, Description: ${doc.description}`
         );

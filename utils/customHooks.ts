@@ -1,6 +1,7 @@
 import { useUser } from "@auth0/nextjs-auth0";
 import { useEffect, useState } from "react";
-import { nanoid } from "nanoid";
+import { useRouter } from "next/router";
+import slugify from "slugify";
 
 export function useDbUserImage(): string {
     const { user } = useUser();
@@ -56,17 +57,25 @@ export function useFormInput<T>(initialValue) {
     return { input, handleInput };
 }
 
-export function useUserId(): string {
-    const [userId, setUserId] = useState<string>("");
+export function useOwnStatus(): boolean {
+    const [owns, setOwns] = useState<boolean>(false);
+    const { user } = useUser();
+    const router = useRouter();
 
-    useEffect(function () {
-        let userId = window.localStorage.getItem("room_service_user");
-        if (userId === null) {
-            userId = nanoid();
-            window.localStorage.setItem("room_service_user", userId);
-        }
-        setUserId(userId);
-    }, []);
+    useEffect(
+        function () {
+            if (user) {
+                const { slug } = router.query;
+                if (
+                    typeof slug === "string" &&
+                    slugify(user.name, "") === slug
+                ) {
+                    setOwns(true);
+                }
+            }
+        },
+        [user]
+    );
 
-    return userId;
+    return owns;
 }

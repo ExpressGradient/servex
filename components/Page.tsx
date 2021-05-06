@@ -42,7 +42,7 @@ function Drawer(): JSX.Element {
     ];
 
     return (
-        <div className="fixed bg-white top-15 w-full text-center py-3 px-4">
+        <div className="fixed bg-white top-15 w-full text-center py-3 px-4 z-10">
             <h4 className="text-black text-lg">Feature Links</h4>
             <div className="text-left text-blue-700">
                 {featureLinks.map((featureLink) => (
@@ -86,6 +86,7 @@ export function AppBar(): JSX.Element {
     const dbUserImage: string = useDbUserImage();
     const windowWidth: number = useWindowWidth();
     const [showDrawer, setShowDrawer] = useState<boolean>(false);
+    const { user } = useUser();
 
     useEffect(function () {
         router.events.on("routeChangeStart", function (url, { shallow }) {
@@ -141,6 +142,11 @@ export function AppBar(): JSX.Element {
                             width={32}
                             height={32}
                             className="rounded-full"
+                            onClick={async function () {
+                                await router.push(
+                                    `/profile/${slugify(user.name, "")}`
+                                );
+                            }}
                         />
                     </div>
                 )}
@@ -181,6 +187,11 @@ export function AppBar(): JSX.Element {
                                     width={32}
                                     height={32}
                                     className="rounded-full cursor-pointer"
+                                    onClick={async function () {
+                                        await router.push(
+                                            `/profile/${slugify(user.name, "")}`
+                                        );
+                                    }}
                                 />
                             </div>
                         ) : (

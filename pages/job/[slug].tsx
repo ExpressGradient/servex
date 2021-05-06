@@ -29,7 +29,10 @@ export default function SingleJob(props): JSX.Element {
 
     return (
         <>
-            <Page />
+            <Page
+                title={`Servex - ${props.title}`}
+                description={`Servex - ${props.description}`}
+            />
             <main className="m-4 md:w-2/3 md:mx-auto md:my-4">
                 <h1 className="text-2xl text-white">{props.title}</h1>
                 <div className="text-gray-200">
