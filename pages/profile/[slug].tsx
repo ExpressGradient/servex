@@ -47,7 +47,7 @@ export default function Profile(props): JSX.Element {
                 title={`Servex - ${props.name}`}
                 description={`Servex ${props.name} Profile`}
             />
-            <main className="w-1/2 mx-auto">
+            <main className="md:w-1/2 md:mx-auto">
                 {/*Profile Card*/}
                 <div className="m-4 bg-gray-900 p-3 rounded-md shadow-md flex gap-3 items-center">
                     <div>
